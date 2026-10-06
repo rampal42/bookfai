@@ -44,8 +44,7 @@ a { color: inherit; }
 .wordmark { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-size: 12px; font-weight: 800; letter-spacing: .04em; }
 .wordmark b { font-weight: 500; color: var(--muted); }
 .wordmark-mark { display: grid; place-items: center; width: 28px; height: 28px; background: var(--green); color: white; font-size: 15px; border-radius: 50%; }
-.guide-link { color: var(--green-dark); font-size: 12px; font-weight: 700; text-decoration-thickness: 1px; text-underline-offset: 4px; }
-.guide-link span { color: var(--coral); margin-left: 3px; }
+.source-label { color: var(--muted); font: 500 10px var(--mono); letter-spacing: .04em; }
 
 .page-shell { width: min(1060px, calc(100% - 40px)); margin: 0 auto; }
 .search-section { padding: clamp(44px, 7vw, 84px) 0 52px; border-bottom: 1px solid var(--line); }
@@ -103,6 +102,9 @@ input[type='checkbox'] { width: 17px; height: 17px; margin: 0; accent-color: var
 .hotel-link { color: var(--green); font: 500 10px var(--mono); white-space: nowrap; text-decoration: none; }
 .hotel-link:hover { text-decoration: underline; }
 .hotel-link span { color: var(--coral); }
+.maps-link { display: inline-flex; align-items: center; gap: 4px; padding: 4px 7px; border: 1px solid #cbd5cc; border-radius: 3px; color: var(--green-dark); font: 500 9px var(--mono); text-decoration: none; white-space: nowrap; }
+.maps-link:hover { border-color: var(--green); background: #edf5ee; }
+.maps-link span { color: var(--coral); }
 .hotel-meta { margin: 5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.55; overflow-wrap: anywhere; }
 .hotel-results { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .result-cell { min-width: 0; display: flex; flex-direction: column; gap: 4px; }

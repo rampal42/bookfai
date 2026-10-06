@@ -1,6 +1,5 @@
-const GUIDE_URL = 'https://foodallergyinstitute.com/travel-guide';
-const PHOTON_URL = 'https://photon.komoot.io/api/';
-const OSRM_URL = 'https://router.project-osrm.org/route/v1/driving/';
+const HOTEL_SOURCE_URL = './hotels.json';
+const DEFAULT_CHILD_AGES = [15, 17];
 const elements = {
   form: document.querySelector('#search-form'),
   start: document.querySelector('#start-date'),
@@ -29,13 +28,9 @@ const elements = {
 
 let hotels = [];
 let criteria = null;
+let hotelData = null;
 let logs = [];
 const controllers = new Map();
-const geocodeCache = new Map();
-
-function cleanText(value) {
-  return value.replace(/\u00a0/g, ' ').replace(/[\t\r ]+/g, ' ').replace(/\n\s+/g, '\n').trim();
-}
 
 function setGuideStatus(message, state = 'idle') {
   elements.guideStatusText.textContent = message;
@@ -102,12 +97,14 @@ function updateAgeInputs() {
     input.required = true;
     input.dataset.childAge = String(index);
     input.setAttribute('aria-label', `Age of child ${index + 1}`);
+    input.value = DEFAULT_CHILD_AGES[index] ?? '';
     label.append(caption, input);
     elements.ageInputs.append(label);
   }
 }
 
 elements.children.addEventListener('input', updateAgeInputs);
+updateAgeInputs();
 elements.start.addEventListener('change', () => {
   if (!elements.start.value) return;
   const nextDay = new Date(`${elements.start.value}T00:00:00`);
@@ -136,129 +133,71 @@ function validateSearch() {
   return { value: { startDate, endDate, adults: adultCount, children: childCount, childAges: ages, clinicAddress } };
 }
 
-function textBetween(anchor, nextAnchor, container) {
-  const range = document.createRange();
-  range.selectNodeContents(container);
-  range.setStartAfter(anchor);
-  if (nextAnchor) range.setEndBefore(nextAnchor);
-  const fragment = range.cloneContents();
-  const wrapper = document.createElement('div');
-  wrapper.append(fragment);
-  for (const br of wrapper.querySelectorAll('br')) br.replaceWith('\n');
-  return cleanText(wrapper.textContent || '');
-}
-
-function getCodeFromUrl(href) {
-  try {
-    const url = new URL(href);
-    for (const key of ['promo', 'promocode', 'corporatecode', 'corpcode', 'discountcode', 'promotion']) {
-      const value = url.searchParams.get(key);
-      if (value) return value;
-    }
-  } catch {
-    return '';
-  }
-  return '';
-}
-
-function parseHotelSection(html) {
-  const parsed = new DOMParser().parseFromString(html, 'text/html');
-  const sections = [...parsed.querySelectorAll('.accordion-item')];
-  const found = [];
-
-  for (const section of sections) {
-    const title = cleanText(section.querySelector('.accordion-title')?.textContent || '');
-    if (!/\bHotels\b/i.test(title)) continue;
-    const content = section.querySelector('.accordion-content');
-    if (!content) continue;
-    const anchors = [...content.querySelectorAll('a[href]')].filter((anchor) => {
-      const name = cleanText(anchor.textContent || '');
-      if (!name || name.length < 3 || /^(book here|click here|website|directions|call)$/i.test(name)) return false;
-      if (/^tel:|^mailto:/i.test(anchor.getAttribute('href') || '')) return false;
-      try {
-        const url = new URL(anchor.href);
-        return /^https?:$/.test(url.protocol) && !(/google\.[^/]+$/.test(url.hostname) && /search/i.test(url.pathname));
-      } catch {
-        return false;
-      }
-    });
-    const citySeen = new Set();
-
-    anchors.forEach((anchor, index) => {
-      const name = cleanText(anchor.textContent || '');
-      const href = anchor.href;
-      const metadata = textBetween(anchor, anchors[index + 1] || null, content);
-      const addressMatch = metadata.match(/\bAddress\s*:\s*([\s\S]*?)(?=\n\s*(?:Phone|Corporate\s+Code|Discount\s+Code|Promo(?:tion)?\s+Code)\s*:|$)/i);
-      const codeMatch = metadata.match(/\b(?:Corporate\s+Code|Discount\s+Code|Promo(?:tion)?\s+Code)\s*:\s*([^\n]+)/i);
-      const city = title.replace(/\s*Hotels\b.*$/i, '').trim() || title;
-      const key = `${city.toLowerCase()}|${name.toLowerCase()}`;
-      if (citySeen.has(key)) return;
-      citySeen.add(key);
-      found.push({
-        id: `${slug(`${city}-${name}`)}-${found.length}`,
-        name,
-        city,
-        cityHeading: title,
-        url: href,
-        address: addressMatch ? cleanText(addressMatch[1]).replace(/\s*\n\s*/g, ', ') : '',
-        code: codeMatch ? cleanText(codeMatch[1]) : getCodeFromUrl(href),
-        selected: false,
-        priceState: 'idle',
-        priceMessage: '',
-        priceAmount: null,
-        priceDraft: '',
-        distanceState: 'idle',
-        distanceMessage: ''
-      });
-    });
-  }
-  return found;
-}
-
 function slug(value) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'hotel';
 }
 
-function populateHotels(html, sourceLabel) {
-  hotels = parseHotelSection(html);
-  for (const hotel of hotels) {
-    hotel.selected = false;
-    hotel.priceState = 'idle';
-    hotel.priceMessage = '';
-    hotel.priceAmount = null;
-    hotel.priceDraft = '';
-    hotel.distanceState = 'idle';
-    hotel.distanceMessage = '';
-  }
+function populateHotels(data, sourceLabel) {
+  if (!Array.isArray(data.hotels)) throw new Error('The JSON file does not contain a hotels list.');
+  hotelData = data;
+  const clinicMatches = normalizeAddress(criteria.clinicAddress) === normalizeAddress(data.clinicAddress || '');
+  const cityHeading = data.cityHeading || 'Long Beach Hotels (LGB)';
+  hotels = data.hotels.map((record, index) => {
+    const hasStaticDistance = clinicMatches && Number.isFinite(record.distanceMiles);
+    return {
+      id: `${slug(`${cityHeading}-${record.hotel}`)}-${index}`,
+      name: record.hotel,
+      city: 'Long Beach',
+      cityHeading,
+      url: record.bookingUrl,
+      address: record.address || '',
+      code: record.code || '',
+      selected: false,
+      priceState: 'idle',
+      priceMessage: '',
+      priceAmount: null,
+      priceDraft: '',
+      distanceIsStatic: true,
+      distanceState: hasStaticDistance ? 'success' : 'unavailable',
+      distanceMiles: hasStaticDistance ? record.distanceMiles : null,
+      distanceKm: hasStaticDistance ? record.distanceKm : null,
+      distanceMessage: clinicMatches
+        ? record.distanceNote || record.distanceMethod || ''
+        : `Static distance is calculated from ${data.clinicAddress}.`
+    };
+  });
   elements.results.hidden = false;
   elements.sourceFallback.hidden = true;
-  elements.resultsSummary.textContent = `${hotels.length} hotels parsed from ${sourceLabel} · ${criteria.adults} adults · ${criteria.children} children · ${criteria.startDate} to ${criteria.endDate}`;
-  setGuideStatus(hotels.length ? `Loaded ${hotels.length} hotels from ${sourceLabel}.` : `No hotel listings were found in ${sourceLabel}.`, hotels.length ? 'success' : 'error');
-  addLog(`Parsed ${hotels.length} hotel entries from ${sourceLabel}.`);
+  elements.resultsSummary.textContent = `${hotels.length} hotels from ${sourceLabel} · ${criteria.adults} adults · ${criteria.children} children · ${criteria.startDate} to ${criteria.endDate}`;
+  setGuideStatus(`Loaded ${hotels.length} hotels and precomputed distances from ${sourceLabel}.`, 'success');
+  addLog(`Loaded ${hotels.length} hotel entries and static distances from ${sourceLabel}.`);
   renderHotels();
 }
 
-async function loadGuide() {
+function normalizeAddress(address) {
+  return address.normalize('NFKD').replace(/[^a-z0-9]/gi, '').toLowerCase();
+}
+
+async function loadHotelList() {
   elements.formError.hidden = true;
   elements.sourceFallback.hidden = true;
-  setGuideStatus('Fetching the Travel Guide page…', 'loading');
-  addLog(`GET ${GUIDE_URL}`);
+  setGuideStatus('Loading hotels.json…', 'loading');
+  addLog(`GET ${HOTEL_SOURCE_URL}`);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 18000);
   try {
-    const response = await fetch(GUIDE_URL, { mode: 'cors', signal: controller.signal });
-    addLog(`Travel Guide response: HTTP ${response.status} ${response.statusText || ''}`.trim());
-    if (!response.ok) throw new Error(`The Travel Guide returned HTTP ${response.status}.`);
-    const html = await response.text();
-    addLog(`Travel Guide response body: ${html.length} characters, ${response.headers.get('content-type') || 'unknown content type'}.`);
-    populateHotels(html, 'the live Travel Guide');
+    const response = await fetch(HOTEL_SOURCE_URL, { signal: controller.signal });
+    addLog(`hotels.json response: HTTP ${response.status} ${response.statusText || ''}`.trim());
+    if (!response.ok) throw new Error(`hotels.json returned HTTP ${response.status}.`);
+    const data = await response.json();
+    populateHotels(data, 'hotels.json');
   } catch (error) {
     const message = error.name === 'AbortError'
-      ? 'The Travel Guide request timed out or was cancelled.'
-      : `The Travel Guide could not be read in this browser (${error.message || 'cross-origin access blocked'}).`;
-    setGuideStatus(`${message} Load a saved HTML copy to continue.`, 'error');
+      ? 'Loading hotels.json timed out or was cancelled.'
+      : `hotels.json could not be loaded (${error.message || 'local file access blocked'}).`;
+    setGuideStatus(`${message} Select hotels.json to continue.`, 'error');
     elements.sourceFallback.hidden = false;
-    addLog(`Travel Guide load failed: ${message}`);
+    addLog(`Hotel JSON load failed: ${message}`);
   } finally {
     clearTimeout(timeout);
   }
@@ -274,7 +213,8 @@ elements.form.addEventListener('submit', async (event) => {
   }
   elements.formError.hidden = true;
   criteria = validation.value;
-  await loadGuide();
+  if (hotelData) populateHotels(hotelData, 'hotels.json');
+  else await loadHotelList();
 });
 
 elements.guideFile.addEventListener('change', async () => {
@@ -282,17 +222,17 @@ elements.guideFile.addEventListener('change', async () => {
   if (!file) return;
   setGuideStatus(`Reading ${file.name}…`, 'loading');
   try {
-    const html = await file.text();
-    populateHotels(html, file.name);
+    const data = JSON.parse(await file.text());
+    populateHotels(data, file.name);
   } catch (error) {
     setGuideStatus(`Could not read the selected file: ${error.message}`, 'error');
-    addLog(`Local guide read failed: ${error.message}`);
+    addLog(`Hotel JSON file read failed: ${error.message}`);
   } finally {
     elements.guideFile.value = '';
   }
 });
 
-elements.refresh.addEventListener('click', loadGuide);
+elements.refresh.addEventListener('click', loadHotelList);
 elements.closeDialog.addEventListener('click', () => elements.dialog.close());
 
 function bookingUrl(hotel) {
@@ -411,85 +351,14 @@ async function lookupPrice(hotel, signal) {
   renderHotels();
 }
 
-async function geocode(address, signal) {
-  if (geocodeCache.has(address)) return geocodeCache.get(address);
-  const url = `${PHOTON_URL}?q=${encodeURIComponent(address)}&limit=1&lang=en`;
-  addLog(`Geocoding address: ${url}`);
-  const response = await fetchWithTimeout(url, signal, { headers: { Accept: 'application/json' } });
-  addLog(`Geocoder response: HTTP ${response.status} ${response.statusText || ''}`.trim());
-  if (!response.ok) throw new Error(`Address lookup returned HTTP ${response.status}.`);
-  const data = await response.json();
-  const feature = data.features?.[0];
-  if (!feature?.geometry?.coordinates) throw new Error(`No location found for: ${address}`);
-  const [longitude, latitude] = feature.geometry.coordinates;
-  const properties = feature.properties || {};
-  const label = [properties.name, properties.street, properties.housenumber, properties.city || properties.locality, properties.state, properties.postcode]
-    .filter(Boolean).join(', ') || address;
-  const result = { longitude, latitude, label };
-  geocodeCache.set(address, result);
-  addLog(`Resolved address as: ${label}`);
-  return result;
-}
-
-async function lookupDistance(hotel, signal) {
-  hotel.distanceState = 'loading';
-  hotel.distanceMessage = 'Resolving clinic and hotel locations…';
-  renderHotels();
-  if (!hotel.address) {
-    hotel.distanceState = 'unavailable';
-    hotel.distanceMessage = 'The Travel Guide entry does not include a hotel address.';
-    addLog(`${hotel.name}: distance unavailable; no hotel address was found in the guide.`);
-    renderHotels();
-    return;
-  }
-  addLog(`${hotel.name}: calculating driving distance from ${criteria.clinicAddress} to ${hotel.address}.`);
-  try {
-    const [clinic, destination] = await Promise.all([
-      geocode(criteria.clinicAddress, signal),
-      geocode(hotel.address, signal)
-    ]);
-    if (controllers.get(`${hotel.id}:distance`)?.signal !== signal || signal.aborted) return;
-    const routeUrl = `${OSRM_URL}${clinic.longitude},${clinic.latitude};${destination.longitude},${destination.latitude}?overview=false&alternatives=false&steps=false`;
-    addLog(`${hotel.name}: requesting road route ${routeUrl}`);
-    const response = await fetchWithTimeout(routeUrl, signal, { headers: { Accept: 'application/json' } });
-    addLog(`${hotel.name}: route response HTTP ${response.status} ${response.statusText || ''}`.trim());
-    if (!response.ok) throw new Error(`Routing service returned HTTP ${response.status}.`);
-    const data = await response.json();
-    if (controllers.get(`${hotel.id}:distance`)?.signal !== signal || signal.aborted) return;
-    const meters = data.routes?.[0]?.distance;
-    if (!Number.isFinite(meters)) throw new Error(data.message || 'No driving route was returned.');
-    hotel.distanceState = 'success';
-    hotel.distanceMiles = meters / 1609.344;
-    hotel.distanceKm = meters / 1000;
-    hotel.distanceMessage = `Driving distance · resolved clinic: ${clinic.label} · resolved hotel: ${destination.label}`;
-    addLog(`${hotel.name}: driving route is ${hotel.distanceMiles.toFixed(1)} mi (${hotel.distanceKm.toFixed(1)} km).`);
-  } catch (error) {
-    if (controllers.get(`${hotel.id}:distance`)?.signal !== signal) return;
-    if (signal.aborted) {
-      hotel.distanceState = 'idle';
-      hotel.distanceMessage = 'Lookup cancelled because the hotel was deselected.';
-      addLog(`${hotel.name}: distance lookup cancelled.`);
-    } else {
-      hotel.distanceState = 'unavailable';
-      hotel.distanceMessage = error.message.includes('HTTP') || error.message.startsWith('No location')
-        ? error.message
-        : 'The geocoding or routing service blocked the request or did not respond.';
-      addLog(`${hotel.name}: distance lookup failed: ${error.message || 'browser cross-origin access blocked'}`);
-    }
-  }
-  renderHotels();
-}
-
 function beginLookups(hotel) {
   openActivity();
-  for (const type of ['price', 'distance']) {
-    const key = `${hotel.id}:${type}`;
-    controllers.get(key)?.abort();
-    const controller = new AbortController();
-    controllers.set(key, controller);
-    if (type === 'price') lookupPrice(hotel, controller.signal);
-    else lookupDistance(hotel, controller.signal);
-  }
+  const key = `${hotel.id}:price`;
+  controllers.get(key)?.abort();
+  const controller = new AbortController();
+  controllers.set(key, controller);
+  if (hotel.distanceIsStatic) addLog(`${hotel.name}: distance is already available from hotels.json; no distance request needed.`);
+  lookupPrice(hotel, controller.signal);
 }
 
 function setHotelSelection(hotel, selected) {
@@ -497,11 +366,9 @@ function setHotelSelection(hotel, selected) {
   if (selected) {
     beginLookups(hotel);
   } else {
-    for (const type of ['price', 'distance']) controllers.get(`${hotel.id}:${type}`)?.abort();
+    controllers.get(`${hotel.id}:price`)?.abort();
     hotel.priceState = 'idle';
     hotel.priceMessage = '';
-    hotel.distanceState = 'idle';
-    hotel.distanceMessage = '';
     addLog(`${hotel.name}: deselected; active requests cancelled.`);
   }
   renderHotels();
@@ -528,12 +395,22 @@ function displayDistance(hotel) {
   return ['Not checked', ''];
 }
 
+function mapsDirectionsUrl(hotel) {
+  const directions = new URL('https://www.google.com/maps/dir/');
+  directions.searchParams.set('api', '1');
+  directions.searchParams.set('origin', hotel.address);
+  directions.searchParams.set('destination', elements.clinic.value.trim() || hotelData?.clinicAddress || '');
+  directions.searchParams.set('travelmode', 'driving');
+  return directions.toString();
+}
+
 function renderHotel(hotel) {
   const fragment = elements.hotelTemplate.content.cloneNode(true);
   const row = fragment.querySelector('.hotel-row');
   const checkbox = fragment.querySelector('.hotel-checkbox');
   const name = fragment.querySelector('.hotel-name');
   const link = fragment.querySelector('.hotel-link');
+  const mapsLink = fragment.querySelector('.maps-link');
   const meta = fragment.querySelector('.hotel-meta');
   const priceCell = fragment.querySelector('.price-cell');
   const priceValue = fragment.querySelector('.price-value');
@@ -552,9 +429,10 @@ function renderHotel(hotel) {
   checkbox.setAttribute('aria-label', `Select ${hotel.name}`);
   name.textContent = hotel.name;
   link.href = hotel.url;
+  mapsLink.href = mapsDirectionsUrl(hotel);
   const metaParts = [];
   if (hotel.address) metaParts.push(hotel.address);
-  if (hotel.code) metaParts.push(`Code: ${hotel.code}`);
+  if (hotel.code) metaParts.push(hotel.code);
   meta.textContent = metaParts.join(' · ');
   meta.hidden = !metaParts.length;
 
@@ -586,7 +464,7 @@ function renderHotel(hotel) {
       addLog(`${hotel.name}: user recorded a verified USD total of ${amount.toFixed(2)}.`);
       renderHotels();
     });
-    retry.hidden = !['unavailable'].includes(hotel.priceState) && !['unavailable'].includes(hotel.distanceState);
+    retry.hidden = hotel.priceState !== 'unavailable';
     retry.addEventListener('click', () => beginLookups(hotel));
   }
   return fragment;
@@ -630,7 +508,13 @@ function renderHotels() {
   if (!hotels.length) {
     const empty = document.createElement('p');
     empty.className = 'results-summary';
-    empty.textContent = 'No city hotel sections were found. Check that the selected file is the Travel Guide page.';
+    empty.textContent = 'No hotel records were found in the selected JSON file.';
     elements.cityList.append(empty);
   }
+}
+
+const initialSearch = validateSearch();
+if (initialSearch.value) {
+  criteria = initialSearch.value;
+  loadHotelList();
 }

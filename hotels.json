@@ -1,0 +1,143 @@
+{
+  "clinicAddress": "2704 E Willow St, Signal Hill, CA 90755",
+  "distanceType": "driving",
+  "distanceDirection": "hotel to clinic",
+  "distanceUnit": "miles",
+  "hotels": [
+    {
+      "hotel": "Residence Inn by Marriott Long Beach",
+      "code": "Corporate Code: A4540",
+      "address": "4111 East Willow St., Long Beach, CA 90815",
+      "bookingUrl": "https://www.marriott.com/event-reservations/reservation-link.mi?id=1731968756424&key=CORP&guestreslink2=true",
+      "distanceMiles": 0.9,
+      "distanceKm": 1.4,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "The Cove Hotel",
+      "code": "Corporate Code: Mention Food Allergy Institute",
+      "address": "200 East Willow St., Long Beach, CA 90806",
+      "bookingUrl": "https://res.windsurfercrs.com/ibe/details.aspx?propertyid=17222&rate=TPRIC&CheckIn=12/8/2023&lang=en-us&nights=1",
+      "distanceMiles": 1.8,
+      "distanceKm": 2.9,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "Staybridge Suites by IHG: Long Beach Airport",
+      "code": "Discount code: 786990966",
+      "address": "2680 N Lakewood Blvd, Long Beach, CA 90815",
+      "bookingUrl": "https://www.ihg.com/staybridge/hotels/us/en/long-beach/laxik/hoteldetail",
+      "distanceMiles": 1.1,
+      "distanceKm": 1.8,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "Long Beach Marriott",
+      "code": "Corporate Code: A4540",
+      "address": "4700 Airport Plaza Drive, Long Beach CA 90815",
+      "bookingUrl": "https://www.marriott.com/en-us/hotels/lgblb-long-beach-marriott/overview/?scid=f2ae0541-1279-4f24-b197-a979c79310b0",
+      "distanceMiles": 2.2,
+      "distanceKm": 3.6,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "The Hotel Current",
+      "code": "",
+      "address": "5325 E Pacific Coast Hwy., Long Beach, CA 90804",
+      "bookingUrl": "https://www.hotelcurrent.com/packages",
+      "distanceMiles": 2.6,
+      "distanceKm": 4.2,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "Homewood Suites by Hilton Long Beach Airport",
+      "code": "Corporate Code: 3249070",
+      "address": "3771 N Lakewood Blvd, Long Beach CA 90808",
+      "bookingUrl": "https://www.hilton.com/en/book/reservation/deeplink/?ctyhocn=LGBARHW&corporateCode=0003406992",
+      "distanceMiles": 2.9,
+      "distanceKm": 4.7,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "Hampton Inn Long Beach Airport",
+      "code": "Corporate Code: 3249070",
+      "address": "3771 N Lakewood Blvd, Long Beach CA 90808",
+      "bookingUrl": "https://www.hilton.com/en/book/reservation/deeplink/?ctyhocn=LGBAPHX&corporateCode=0003406992",
+      "distanceMiles": 2.9,
+      "distanceKm": 4.7,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "Courtyard Long Beach Airport (A Marriott Hotel)",
+      "code": "",
+      "address": "3841 N. Lakewood Blvd., Long Beach CA 90808",
+      "bookingUrl": "https://www.marriott.com/en-us/hotels/lgbcl-courtyard-long-beach-airport/overview/",
+      "distanceMiles": 3,
+      "distanceKm": 4.8,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "Courtyard Long Beach Downtown (A Marriott Hotel)",
+      "code": "",
+      "address": "500 East First St., Long Beach CA 90802",
+      "bookingUrl": "https://www.marriott.com/en-us/hotels/lgbcy-courtyard-long-beach-downtown/overview/",
+      "distanceMiles": 3.7,
+      "distanceKm": 6,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "Hyatt Regency Long Beach",
+      "code": "Corporate Code: 151590",
+      "address": "200 South Pine Avenue, Long Beach CA 90802",
+      "bookingUrl": "https://www.hyatt.com/hyatt-regency/en-US/lgbrl-hyatt-regency-long-beach?src=adm_sem_crp_chico_crp_ppc_NAM-UnitedStates-CA-LongBeach-HR-LGBRL_google_Evergreen2022_e_hyatt%20regency%20long%20beach%20california&gclid=CjwKCAjws9ipBhB1EiwAccEi1JQvIcZzPDkQfkkd6RbfkEbXxM4dW8hfkDEMmX6hBENu0FNaacVqMBoCrhIQAvD_BwE",
+      "distanceMiles": 4,
+      "distanceKm": 6.5,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "Fairmont Breakers",
+      "code": "Client Code: SCP4547249; Access Code: F0762US514",
+      "address": "210 E Ocean Blvd, Long Beach, CA 90802",
+      "bookingUrl": "https://businesstravel.accor.com/en/booking/advanced-search.html?identification.reserverType=SC&identification.reserverId=SCP4547249&identification.reserverContract=FO762US514",
+      "distanceMiles": 4.1,
+      "distanceKm": 6.6,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "Hyatt Centric - The Pike Long Beach",
+      "code": "Corporate Code: 151590",
+      "address": "285 Bay Street, Long Beach CA 90802-8161",
+      "bookingUrl": "https://www.hyatt.com/hyatt-centric/lgbrp-hyatt-centric-the-pike-long-beach?src=adm_sem_crp_chico_crp_ppc_NAM-UnitedStates-CA-LongBeach-CT-LGBRP_google_Evergreen2022_e_hyatt%20centric%20the%20pike%20long%20beach&gad_source=1&gclid=Cj0KCQjwzZmwBhD8ARIsAH4v1gUx9VwEYxxFuW5gjzebBlXJg-VvppNrPxlNn0kUValu1AnMqUueth8aAmC7EALw_wcB",
+      "distanceMiles": 4.4,
+      "distanceKm": 7.1,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "Residence Inn Long Beach Downtown by Marriott",
+      "code": "Corporate Code: E3970",
+      "address": "600 Queensway Drive, Long Beach, CA 90802",
+      "bookingUrl": "https://www.marriott.com/en-us/hotels/lgbri-residence-inn-long-beach-downtown/overview/",
+      "distanceMiles": 5.9,
+      "distanceKm": 9.5,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "Hotel Maya",
+      "code": "Corporate Code: P75",
+      "address": "700 Queensway Dr., Long Beach, CA 90802",
+      "bookingUrl": "https://be.synxis.com/?adult=1&arrive=2025-12-01&chain=33222&child=0&config=initialConfig&currency=USD&depart=2025-12-02&hotel=49440&level=hotel&locale=en-US&productcurrency=USD&promo=P75&rooms=1&segment=DLX&theme=initialTheme",
+      "distanceMiles": 6.5,
+      "distanceKm": 10.5,
+      "distanceMethod": "Driving route from hotel to clinic"
+    },
+    {
+      "hotel": "Sonesta ES Suites Torrance Redondo Beach",
+      "code": "Promo Code: 2FOODALL",
+      "address": "19901 Prairie Ave, Torrance, CA 90503",
+      "bookingUrl": "https://www.sonesta.com/sonesta-es-suites/ca/torrance/sonesta-es-suites-torrance-redondo-beach?isGroupCode=false&promoCode=2FOODALL",
+      "distanceMiles": 13.3,
+      "distanceKm": 21.4,
+      "distanceMethod": "Driving route from hotel to clinic"
+    }
+  ]
+}

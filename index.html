@@ -17,7 +17,7 @@
       <span class="wordmark-mark">F</span>
       <span>FAI <b>STAYFINDER</b></span>
     </a>
-    <a class="guide-link" href="https://foodallergyinstitute.com/travel-guide" target="_blank" rel="noopener noreferrer">Travel Guide <span aria-hidden="true">↗</span></a>
+    <span class="source-label">BUNDLED HOTEL LIST</span>
   </header>
 
   <main class="page-shell">
@@ -35,11 +35,11 @@
         <div class="form-grid dates-grid">
           <label class="field">
             <span class="field-label">Check in</span>
-            <input id="start-date" name="startDate" type="date" required>
+            <input id="start-date" name="startDate" type="date" value="2026-11-11" required>
           </label>
           <label class="field">
             <span class="field-label">Check out</span>
-            <input id="end-date" name="endDate" type="date" required>
+            <input id="end-date" name="endDate" type="date" value="2026-11-12" required>
           </label>
           <label class="field">
             <span class="field-label">Adults</span>
@@ -47,7 +47,7 @@
           </label>
           <label class="field">
             <span class="field-label">Children</span>
-            <input id="child-count" name="children" type="number" min="0" max="12" step="1" value="0" required>
+            <input id="child-count" name="children" type="number" min="0" max="12" step="1" value="2" required>
           </label>
         </div>
 
@@ -59,7 +59,7 @@
         <div class="form-bottom">
           <label class="field clinic-field">
             <span class="field-label">Medical clinic address</span>
-            <input id="clinic-address" name="clinicAddress" type="text" placeholder="Street address, city, state, ZIP" autocomplete="street-address" required>
+            <input id="clinic-address" name="clinicAddress" type="text" value="2704 E Willow St, Signal Hill, CA 90755" placeholder="Street address, city, state, ZIP" autocomplete="street-address" required>
           </label>
           <button class="primary-button" type="submit"><span>Find hotels</span><span class="button-arrow" aria-hidden="true">↗</span></button>
         </div>
@@ -68,14 +68,14 @@
 
       <div id="guide-status" class="guide-status" role="status" aria-live="polite">
         <span class="status-indicator"></span>
-        <span id="guide-status-text">Hotel listings load from the Travel Guide when you search.</span>
+        <span id="guide-status-text">Hotel listings and precomputed driving distances load from hotels.json.</span>
       </div>
       <div id="source-fallback" class="source-fallback" hidden>
         <div>
-          <strong>Browser access was blocked.</strong>
-          <p>Load a saved copy of the Travel Guide page to continue.</p>
+          <strong>The hotel JSON file could not be loaded.</strong>
+          <p>Select hotels.json from this project folder to continue.</p>
         </div>
-        <label class="file-button">Choose HTML file<input id="guide-file" type="file" accept=".html,.htm,text/html"></label>
+        <label class="file-button">Choose JSON file<input id="guide-file" type="file" accept=".json,application/json"></label>
       </div>
     </section>
 
@@ -86,7 +86,7 @@
           <h2 id="results-title">Available stays</h2>
           <p id="results-summary" class="results-summary"></p>
         </div>
-        <button id="refresh-guide" class="text-button" type="button"><span aria-hidden="true">↻</span> Reload guide</button>
+        <button id="refresh-guide" class="text-button" type="button"><span aria-hidden="true">↻</span> Reload hotels.json</button>
       </div>
       <div id="city-list" class="city-list"></div>
 
@@ -123,6 +123,7 @@
         <div class="hotel-title-line">
           <h4 class="hotel-name"></h4>
           <a class="hotel-link" target="_blank" rel="noopener noreferrer">Booking page <span aria-hidden="true">↗</span></a>
+          <a class="maps-link" target="_blank" rel="noopener noreferrer">Directions <span aria-hidden="true">↗</span></a>
         </div>
         <p class="hotel-meta"></p>
       </div>
